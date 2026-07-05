@@ -11,7 +11,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 import torchaudio
 
-from utils import BreathType  
+from breathing_model.model.exhale_only_detection.utils import BreathType
 
 
 class BreathDataset(Dataset):
@@ -220,6 +220,32 @@ def collate_fn(batch):
     return spectrograms_batch, labels_padded, padding_mask
 
 
+def calculate_class_weights(dataset: 'BreathDataset') -> torch.Tensor:
+    """
+    Calculates class weights for imbalanced datasets to be used in a loss function.
+    The weight is calculated as: weight = total_samples / (num_classes * samples_per_class).
+    This gives more weight to under-represented classes.
+
+    Args:
+        dataset: The dataset for which to calculate weights.
+
+    Returns:
+        A tensor of weights for each class.
+    """
+    from collections import Counter
+    print("Calculating class weights for loss function...")
+    all_labels = []
+    for i in range(len(dataset)):
+        _, labels = dataset[i]
+        all_labels.extend(labels.tolist())
+
+    label_counts = Counter(all_labels)
+    total_samples = sum(label_counts.values())
+    num_classes = len(label_counts)
+
+    weights = [total_samples / (num_classes * label_counts[i]) for i in sorted(label_counts.keys())]
+    print(f"Calculated weights: {weights}")
+    return torch.tensor(weights, dtype=torch.float)
 
 def analyze_label_distribution(dataset: 'BreathDataset', breath_type_class=None) -> dict:
     """

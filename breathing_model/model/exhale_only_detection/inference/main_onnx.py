@@ -1,8 +1,15 @@
 import time
 import logging
+import sys
+import os
 import numpy as np
 import torch
 import onnxruntime as ort
+
+# Add project root to path to allow relative imports
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 
 from breathing_model.model.exhale_only_detection.utils import Config, BreathType
 from breathing_model.model.transformer.inference.audio import AudioStream

@@ -12,7 +12,7 @@ class PositionalEncoding(nn.Module):
     Sinusoidal positional encoding added to the token embeddings.
     Input: embeddings tensor of shape [batch_size, sequence_length, d_model]
     """
-    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 1000):
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 6000):
         super().__init__()
         pe = torch.zeros(max_len, d_model) # positional encoding
         position = torch.arange(0, max_len, dtype=torch.float32).unsqueeze(1)

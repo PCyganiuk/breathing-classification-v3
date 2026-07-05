@@ -1,15 +1,24 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-from typing import Tuple
+from typing import Tuple, Optional, Dict
 
 import torch
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+import numpy as np
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
-from breathing_model.model.exhale_only_detection.dataset import BreathDataset, collate_fn
+import sys
+# Add project root to path to allow relative imports
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+
+from breathing_model.model.exhale_only_detection.dataset import BreathDataset, collate_fn, calculate_class_weights
 from breathing_model.model.exhale_only_detection.model import BreathPhaseTransformerSeq
 from breathing_model.model.exhale_only_detection.utils import split_dataset, load_yaml
 
@@ -80,15 +89,18 @@ def run_train_epoch(model: nn.Module,
 def run_validation_epoch(model: nn.Module,
                          data_loader: DataLoader,
                          loss_function: nn.Module,
-                         device: torch.device) -> Tuple[float, float]:
+                         device: torch.device) -> Dict[str, float]:
     """
-    Runs validation epoch (no grad). Returns average loss per valid frame and accuracy on valid frames.
+    Runs validation epoch. Returns a dictionary of metrics.
     """
     model.eval()
 
     total_loss_weighted = 0.0
     total_valid_frames = 0
     total_correct_predictions = 0
+
+    all_predictions = []
+    all_true_labels = []
 
     with torch.no_grad():
         for spectrograms_batch, labels_batch, padding_mask_batch in data_loader:
@@ -111,13 +123,37 @@ def run_validation_epoch(model: nn.Module,
 
             predicted_labels = torch.argmax(outputs, dim=-1)
             valid_frame_mask = ~padding_mask_batch
-            total_correct_predictions += ((predicted_labels == labels_batch) & valid_frame_mask).sum().item()
 
-    average_loss = (total_loss_weighted / total_valid_frames) if total_valid_frames > 0 else 0.0
-    accuracy = (total_correct_predictions / total_valid_frames) if total_valid_frames > 0 else 0.0
+            # Collect predictions and labels for metrics calculation
+            all_predictions.append(predicted_labels[valid_frame_mask].cpu().numpy())
+            all_true_labels.append(labels_batch[valid_frame_mask].cpu().numpy())
 
-    return average_loss, accuracy
+    avg_loss = (total_loss_weighted / total_valid_frames) if total_valid_frames > 0 else 0.0
 
+    if not all_predictions:
+        return {"loss": avg_loss, "accuracy": 0, "precision_exhale": 0, "recall_exhale": 0, "f1_exhale": 0}
+
+    # Concatenate all batches
+    all_predictions_np = np.concatenate(all_predictions)
+    all_true_labels_np = np.concatenate(all_true_labels)
+
+    # Calculate metrics using sklearn for robustness
+    accuracy = accuracy_score(all_true_labels_np, all_predictions_np)
+
+    # Calculate precision, recall, f1 for each class.
+    # labels=[0, 1] ensures we get scores for both classes even if one isn't predicted.
+    # zero_division=0 prevents warnings if a class is never predicted.
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        all_true_labels_np, all_predictions_np, labels=[0, 1], average=None, zero_division=0
+    )
+
+    metrics = {
+        "loss": avg_loss,
+        "accuracy": accuracy,
+        "precision_exhale": precision[0], "recall_exhale": recall[0], "f1_exhale": f1[0],
+        "precision_other": precision[1], "recall_other": recall[1], "f1_other": f1[1],
+    }
+    return metrics
 
 def train_model(model: nn.Module,
                 train_loader: DataLoader,
@@ -127,13 +163,14 @@ def train_model(model: nn.Module,
                 optimizer: optim.Optimizer,
                 scheduler,
                 save_directory: str,
-                patience: int = 6) -> None:
+                patience: int = 6,
+                class_weights: Optional[torch.Tensor] = None) -> None:
     """
     Full training loop with early stopping based on validation loss.
     """
     os.makedirs(save_directory, exist_ok=True)
 
-    loss_function = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
+    loss_function = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX, weight=class_weights)
     best_val_loss = float('inf')
     epochs_since_improvement = 0
 
@@ -141,11 +178,14 @@ def train_model(model: nn.Module,
         train_loss, train_accuracy = run_train_epoch(model, train_loader, loss_function, optimizer, device, scheduler)
         print(f"Epoch {epoch} / {num_epochs} - Train Loss: {train_loss:.6f} | Train Acc: {train_accuracy:.4f}")
 
-        val_loss, val_accuracy = run_validation_epoch(model, val_loader, loss_function, device)
-        print(f"Epoch {epoch} / {num_epochs} - Val   Loss: {val_loss:.6f} | Val   Acc: {val_accuracy:.4f}")
+        val_metrics = run_validation_epoch(model, val_loader, loss_function, device)
+        val_loss = val_metrics['loss']
+        print(f"Epoch {epoch} / {num_epochs} - Val   Loss: {val_loss:.6f} | Val Acc: {val_metrics['accuracy']:.4f}")
+        print(f"                 └─ Exhale: P={val_metrics['precision_exhale']:.4f} | R={val_metrics['recall_exhale']:.4f} | F1={val_metrics['f1_exhale']:.4f}")
 
         # Step scheduler (if provided)
-        if scheduler is not None and isinstance(scheduler, torch.optim.lr_scheduler.StepLR):
+        # OneCycleLR is stepped per batch, StepLR per epoch
+        if scheduler is not None and not isinstance(scheduler, torch.optim.lr_scheduler.OneCycleLR):
             scheduler.step()
 
         # Checkpointing based on validation loss
@@ -176,11 +216,13 @@ def main():
     config = load_yaml("./config.yaml")
 
     # === Device ===
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # === Dataset ===
-    dataset = BreathDataset(
+    # === Datasets ===
+    # Create training dataset with augmentation
+    print("Loading training dataset...")
+    train_dataset = BreathDataset(
         data_dir=config['data']['data_dir'],
         label_dir=config['data']['label_dir'],
         sample_rate=config['data']['sample_rate'],
@@ -197,7 +239,24 @@ def main():
         seed=config['augment']['seed']
     )
 
-    train_dataset, val_dataset = split_dataset(dataset)
+    # Create validation dataset from a separate directory for unseen people.
+    # Augmentation is disabled for the validation set.
+    print("Loading validation dataset for unseen people...")
+    val_dataset = BreathDataset(
+        data_dir='../../data/eval_unseen_people/raw',
+        label_dir='../../data/eval_unseen_people/label',
+        sample_rate=config['data']['sample_rate'],
+        n_mels=config['data']['n_mels'],
+        n_fft=config['data']['n_fft'],
+        hop_length=config['data']['hop_length'],
+        augment=False,  # No augmentation for validation
+    )
+
+    # === Calculate Class Weights for Loss Function ===
+    # Use the training dataset to get the class distribution for weighting the loss.
+    # These weights will be passed to the loss function to penalize errors on the
+    # minority class ('exhale') more heavily.
+    class_weights = calculate_class_weights(train_dataset).to(device)
 
     # === DataLoaders ===
     train_loader = DataLoader(
@@ -270,7 +329,8 @@ def main():
         optimizer=optimizer,
         scheduler=scheduler,
         save_directory=config['train']['save_dir'],
-        patience=config['train']['patience']
+        patience=config['train']['patience'],
+        class_weights=class_weights
     )
 
 

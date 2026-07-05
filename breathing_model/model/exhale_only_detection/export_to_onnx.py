@@ -1,5 +1,13 @@
+import sys
+import os
 import torch
 import torch.onnx
+
+# Add project root to path to allow relative imports
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+
 from breathing_model.model.exhale_only_detection.model import BreathPhaseTransformerSeq
 from breathing_model.model.exhale_only_detection.utils import Config, DataConfig
 from breathing_model.model.transformer.inference.transform import MelSpectrogramTransform

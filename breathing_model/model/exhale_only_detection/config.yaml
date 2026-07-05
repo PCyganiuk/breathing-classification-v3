@@ -23,11 +23,11 @@ audio:
   sample_rate: 44100
 
 train:
-  batch_size: 16
-  learning_rate: 0.0003
+  batch_size: 4
+  learning_rate: 0.0001
   weight_decay: 0.00001
-  num_epochs: 50
-  patience: 6
+  num_epochs: 100
+  patience: 10
   save_dir: "checkpoints"
 
 scheduler:

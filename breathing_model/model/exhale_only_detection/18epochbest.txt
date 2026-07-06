@@ -1,0 +1,120 @@
+nohup: ignoring input
+Using device: cuda:0
+Loading training dataset...
+Loading validation dataset for unseen people...
+Calculating class weights for loss function...
+Calculated weights: [1.3296917424855905, 0.801316726680984]
+Epoch 1 / 100 - Train Loss: 0.659673 | Train Acc: 0.6164
+Epoch 1 / 100 - Val   Loss: 0.595426 | Val Acc: 0.7092
+                 └─ Exhale: P=0.6004 | R=0.6868 | F1=0.6407
+Saved best model to checkpoints/best_model_epoch_1.pth
+Epoch 2 / 100 - Train Loss: 0.535042 | Train Acc: 0.7413
+Epoch 2 / 100 - Val   Loss: 0.542840 | Val Acc: 0.7676
+                 └─ Exhale: P=0.6623 | R=0.7843 | F1=0.7182
+Saved best model to checkpoints/best_model_epoch_2.pth
+Epoch 3 / 100 - Train Loss: 0.467541 | Train Acc: 0.7924
+Epoch 3 / 100 - Val   Loss: 0.472141 | Val Acc: 0.8361
+                 └─ Exhale: P=0.8093 | R=0.7403 | F1=0.7733
+Saved best model to checkpoints/best_model_epoch_3.pth
+Epoch 4 / 100 - Train Loss: 0.433939 | Train Acc: 0.8165
+Epoch 4 / 100 - Val   Loss: 0.456916 | Val Acc: 0.8235
+                 └─ Exhale: P=0.7551 | R=0.7882 | F1=0.7713
+Saved best model to checkpoints/best_model_epoch_4.pth
+Epoch 5 / 100 - Train Loss: 0.422051 | Train Acc: 0.8257
+Epoch 5 / 100 - Val   Loss: 0.375341 | Val Acc: 0.8522
+                 └─ Exhale: P=0.8119 | R=0.7919 | F1=0.8017
+Saved best model to checkpoints/best_model_epoch_5.pth
+Epoch 6 / 100 - Train Loss: 0.397189 | Train Acc: 0.8348
+Epoch 6 / 100 - Val   Loss: 0.400150 | Val Acc: 0.8358
+                 └─ Exhale: P=0.7896 | R=0.7702 | F1=0.7798
+No improvement for 1 epoch(s).
+Epoch 7 / 100 - Train Loss: 0.379795 | Train Acc: 0.8443
+Epoch 7 / 100 - Val   Loss: 0.406155 | Val Acc: 0.8463
+                 └─ Exhale: P=0.7945 | R=0.7999 | F1=0.7971
+No improvement for 2 epoch(s).
+Epoch 8 / 100 - Train Loss: 0.371169 | Train Acc: 0.8507
+Epoch 8 / 100 - Val   Loss: 0.381563 | Val Acc: 0.8512
+                 └─ Exhale: P=0.8008 | R=0.8065 | F1=0.8036
+No improvement for 3 epoch(s).
+Epoch 9 / 100 - Train Loss: 0.371885 | Train Acc: 0.8516
+Epoch 9 / 100 - Val   Loss: 0.371007 | Val Acc: 0.8562
+                 └─ Exhale: P=0.8194 | R=0.7940 | F1=0.8065
+Saved best model to checkpoints/best_model_epoch_9.pth
+Epoch 10 / 100 - Train Loss: 0.353049 | Train Acc: 0.8608
+Epoch 10 / 100 - Val   Loss: 0.421360 | Val Acc: 0.8602
+                 └─ Exhale: P=0.8576 | R=0.7552 | F1=0.8031
+No improvement for 1 epoch(s).
+Epoch 11 / 100 - Train Loss: 0.354423 | Train Acc: 0.8566
+Epoch 11 / 100 - Val   Loss: 0.356202 | Val Acc: 0.8697
+                 └─ Exhale: P=0.8856 | R=0.7520 | F1=0.8134
+Saved best model to checkpoints/best_model_epoch_11.pth
+Epoch 12 / 100 - Train Loss: 0.362566 | Train Acc: 0.8598
+Epoch 12 / 100 - Val   Loss: 0.354195 | Val Acc: 0.8683
+                 └─ Exhale: P=0.8509 | R=0.7893 | F1=0.8189
+Saved best model to checkpoints/best_model_epoch_12.pth
+Epoch 13 / 100 - Train Loss: 0.342019 | Train Acc: 0.8655
+Epoch 13 / 100 - Val   Loss: 0.382533 | Val Acc: 0.8686
+                 └─ Exhale: P=0.8820 | R=0.7526 | F1=0.8122
+No improvement for 1 epoch(s).
+Epoch 14 / 100 - Train Loss: 0.324961 | Train Acc: 0.8751
+Epoch 14 / 100 - Val   Loss: 0.378453 | Val Acc: 0.8483
+                 └─ Exhale: P=0.7806 | R=0.8319 | F1=0.8054
+No improvement for 2 epoch(s).
+Epoch 15 / 100 - Train Loss: 0.335427 | Train Acc: 0.8653
+Epoch 15 / 100 - Val   Loss: 0.370722 | Val Acc: 0.8706
+                 └─ Exhale: P=0.8743 | R=0.7677 | F1=0.8175
+No improvement for 3 epoch(s).
+Epoch 16 / 100 - Train Loss: 0.314589 | Train Acc: 0.8803
+Epoch 16 / 100 - Val   Loss: 0.370233 | Val Acc: 0.8682
+                 └─ Exhale: P=0.8522 | R=0.7875 | F1=0.8186
+No improvement for 4 epoch(s).
+Epoch 17 / 100 - Train Loss: 0.329091 | Train Acc: 0.8721
+Epoch 17 / 100 - Val   Loss: 0.387233 | Val Acc: 0.8600
+                 └─ Exhale: P=0.9157 | R=0.6929 | F1=0.7889
+No improvement for 5 epoch(s).
+Epoch 18 / 100 - Train Loss: 0.335498 | Train Acc: 0.8691
+Epoch 18 / 100 - Val   Loss: 0.325291 | Val Acc: 0.8749
+                 └─ Exhale: P=0.8766 | R=0.7781 | F1=0.8244
+Saved best model to checkpoints/best_model_epoch_18.pth
+Epoch 19 / 100 - Train Loss: 0.315354 | Train Acc: 0.8762
+Epoch 19 / 100 - Val   Loss: 0.381383 | Val Acc: 0.8636
+                 └─ Exhale: P=0.8781 | R=0.7415 | F1=0.8041
+No improvement for 1 epoch(s).
+Epoch 20 / 100 - Train Loss: 0.316789 | Train Acc: 0.8798
+Epoch 20 / 100 - Val   Loss: 0.374632 | Val Acc: 0.8737
+                 └─ Exhale: P=0.8863 | R=0.7633 | F1=0.8202
+No improvement for 2 epoch(s).
+Epoch 21 / 100 - Train Loss: 0.308492 | Train Acc: 0.8799
+Epoch 21 / 100 - Val   Loss: 0.347240 | Val Acc: 0.8653
+                 └─ Exhale: P=0.8339 | R=0.8032 | F1=0.8183
+No improvement for 3 epoch(s).
+Epoch 22 / 100 - Train Loss: 0.298751 | Train Acc: 0.8862
+Epoch 22 / 100 - Val   Loss: 0.364043 | Val Acc: 0.8734
+                 └─ Exhale: P=0.8834 | R=0.7658 | F1=0.8204
+No improvement for 4 epoch(s).
+Epoch 23 / 100 - Train Loss: 0.312547 | Train Acc: 0.8798
+Epoch 23 / 100 - Val   Loss: 0.351628 | Val Acc: 0.8665
+                 └─ Exhale: P=0.8572 | R=0.7755 | F1=0.8143
+No improvement for 5 epoch(s).
+Epoch 24 / 100 - Train Loss: 0.313101 | Train Acc: 0.8793
+Epoch 24 / 100 - Val   Loss: 0.410039 | Val Acc: 0.8587
+                 └─ Exhale: P=0.8973 | R=0.7066 | F1=0.7906
+No improvement for 6 epoch(s).
+Epoch 25 / 100 - Train Loss: 0.304606 | Train Acc: 0.8846
+Epoch 25 / 100 - Val   Loss: 0.364687 | Val Acc: 0.8640
+                 └─ Exhale: P=0.8440 | R=0.7849 | F1=0.8134
+No improvement for 7 epoch(s).
+Epoch 26 / 100 - Train Loss: 0.299834 | Train Acc: 0.8833
+Epoch 26 / 100 - Val   Loss: 0.349046 | Val Acc: 0.8615
+                 └─ Exhale: P=0.8323 | R=0.7930 | F1=0.8122
+No improvement for 8 epoch(s).
+Epoch 27 / 100 - Train Loss: 0.348409 | Train Acc: 0.8632
+Epoch 27 / 100 - Val   Loss: 0.390880 | Val Acc: 0.8366
+                 └─ Exhale: P=0.7768 | R=0.7958 | F1=0.7862
+No improvement for 9 epoch(s).
+Epoch 28 / 100 - Train Loss: 0.359155 | Train Acc: 0.8582
+Epoch 28 / 100 - Val   Loss: 0.362812 | Val Acc: 0.8379
+                 └─ Exhale: P=0.7936 | R=0.7711 | F1=0.7822
+No improvement for 10 epoch(s).
+Early stopping triggered.
+Training finished.

@@ -7,6 +7,7 @@ import torch
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import numpy as np
+import random
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 from torch import nn, optim
@@ -210,10 +211,27 @@ def train_model(model: nn.Module,
 
     print("Training finished.")
 
+import random
+
+def set_global_seed(seed: int = 42):
+    """Locks all random seeds for full training reproducibility."""
+    # Python & NumPy
+    random.seed(seed)
+    np.random.seed(seed)
+    
+    # PyTorch
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    
+    # CUDNN backend (makes convolutional layers deterministic)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 def main():
     # === Load config ===
     config = load_yaml("./config.yaml")
+    set_global_seed(config['augment']['seed'])
 
     # === Device ===
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

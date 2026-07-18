@@ -44,7 +44,7 @@ def export_breath_classifier_to_onnx(model_path, onnx_path, audio_length=154350)
         num_classes=config.model.num_classes
     )
 
-    checkpoint = torch.load(model_path, map_location=torch.device('cpu'), weights_only=True)
+    checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
     if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
         state_dict = checkpoint['model_state_dict']
     else:
@@ -58,7 +58,7 @@ def export_breath_classifier_to_onnx(model_path, onnx_path, audio_length=154350)
     full_model.eval()
 
     # Dummy input: [batch=1, audio_length]
-    dummy_input = torch.randn(audio_length, dtype=torch.float32)
+    dummy_input = torch.randn(1, audio_length, dtype=torch.float32)
 
     input_names = ["audio_input"]
     output_names = ["logits"]
@@ -71,7 +71,8 @@ def export_breath_classifier_to_onnx(model_path, onnx_path, audio_length=154350)
         do_constant_folding=True,
         input_names=input_names,
         output_names=output_names,
-        opset_version=18,
+        #opset_version=18,
+        dynamo=True,
         verbose=False,
     )
 
@@ -83,8 +84,8 @@ def export_breath_classifier_to_onnx(model_path, onnx_path, audio_length=154350)
 
 if __name__ == "__main__":
     # Model paths - using the model from realtime inference
-    model_path = "best_models/best_model_epoch_21.pth"
-    onnx_path = "best_models/best_model_epoch_21.onnx"
+    model_path = "checkpoints/best_model_epoch_18.pth"
+    onnx_path = "best_models/best_model_epoch_18_new.onnx"
 
     # Export model
     export_breath_classifier_to_onnx(model_path, onnx_path)

@@ -1,0 +1,19 @@
+{
+  "threshold": 0.7,
+  "num_chunks": 11705,
+  "accuracy": 0.846561298590346,
+  "classification_report": "              precision    recall  f1-score   support\n\n      Exhale     0.8308    0.9427    0.8832      7206\n       Other     0.8830    0.6926    0.7763      4499\n\n    accuracy                         0.8466     11705\n   macro avg     0.8569    0.8176    0.8298     11705\nweighted avg     0.8509    0.8466    0.8421     11705\n",
+  "confusion_matrix": [
+    [
+      6793,
+      413
+    ],
+    [
+      1383,
+      3116
+    ]
+  ],
+  "roc_auc": 0.9167225430241785,
+  "confusion_matrix_plot": "/home/pyza/Projects/breathing-classification-v3/breathing_model/model/exhale_only_detection/evaluation_output/confusion_best_model_epoch_21_pth_thr_0_7.png",
+  "report_path": "/home/pyza/Projects/breathing-classification-v3/breathing_model/model/exhale_only_detection/evaluation_output/report_best_model_epoch_21_pth_thr_0_7.txt"
+}

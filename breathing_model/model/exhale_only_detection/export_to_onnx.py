@@ -12,6 +12,12 @@ from breathing_model.model.exhale_only_detection.model import BreathPhaseTransfo
 from breathing_model.model.exhale_only_detection.utils import Config, DataConfig
 from breathing_model.model.transformer.inference.transform import MelSpectrogramTransform
 
+try:
+    from onnxruntime.quantization import quantize_dynamic, QuantType
+except ImportError:
+    print("Warning: onnxruntime not installed. Int8 quantization will be skipped.")
+    quantize_dynamic = None
+
 
 class AudioToBreathClassifier(torch.nn.Module):
     """Wrapper model that includes MelSpectrogram preprocessing."""
@@ -30,7 +36,42 @@ class AudioToBreathClassifier(torch.nn.Module):
         return self.classifier(mel_spec)
 
 
-def export_breath_classifier_to_onnx(model_path, onnx_path, audio_length=154350):
+def quantize_onnx_to_int8(onnx_path: str, quantized_path: str) -> bool:
+    """
+    Quantize ONNX model to int8 using dynamic quantization.
+    
+    Args:
+        onnx_path: Path to the input ONNX model
+        quantized_path: Path to save the quantized model
+        
+    Returns:
+        True if quantization was successful, False otherwise
+    """
+    if quantize_dynamic is None:
+        print("Skipping int8 quantization: onnxruntime not available")
+        return False
+    
+    try:
+        print(f"Quantizing model to int8: {onnx_path} -> {quantized_path}")
+        quantize_dynamic(
+            onnx_path,
+            quantized_path,
+            weight_type=QuantType.QInt8,
+        )
+        print(f"Int8 quantization successful: {quantized_path}")
+        
+        # Verify quantized model
+        import onnx
+        quantized_model = onnx.load(quantized_path)
+        onnx.checker.check_model(quantized_model)
+        print("Quantized model verified successfully")
+        return True
+    except Exception as e:
+        print(f"Error during quantization: {e}")
+        return False
+
+
+def export_breath_classifier_to_onnx(model_path, onnx_path, quantized_onnx_path=None, audio_length=154350):
     print("Exporting breath classifier to ONNX...")
 
     config = Config.from_yaml('./config.yaml')
@@ -80,14 +121,19 @@ def export_breath_classifier_to_onnx(model_path, onnx_path, audio_length=154350)
     onnx_model = onnx.load(onnx_path)
     onnx.checker.check_model(onnx_model)
     print(f"Breath classifier model exported and verified: {onnx_path}")
+    
+    # Quantize to int8 if path is provided
+    if quantized_onnx_path:
+        quantize_onnx_to_int8(onnx_path, quantized_onnx_path)
 
 
 if __name__ == "__main__":
     # Model paths - using the model from realtime inference
     model_path = "checkpoints/best_model_epoch_18.pth"
     onnx_path = "best_models/best_model_epoch_18_new.onnx"
+    quantized_onnx_path = "best_models/best_model_epoch_18_new_int8.onnx"
 
-    # Export model
-    export_breath_classifier_to_onnx(model_path, onnx_path)
+    # Export model and quantize to int8
+    export_breath_classifier_to_onnx(model_path, onnx_path, quantized_onnx_path)
 
-    print("ONNX export complete.")
+    print("ONNX export and quantization complete.")

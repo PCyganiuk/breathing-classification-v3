@@ -60,8 +60,46 @@ class OnnxBreathPhaseClassifier:
         """
         audio_padded = self._pad_audio_to_length(audio_waveform)  # [target_length]
 
-        ort_inputs = {self.input_name: audio_padded}
-        ort_outputs = self.session.run(None, ort_inputs)
+        # Inspect expected input shape and adapt audio accordingly to avoid rank errors
+        input_info = self.session.get_inputs()[0]
+        expected_shape = input_info.shape  # e.g. [None, 154350] or [154350]
+        # Determine expected rank and adapt
+        if isinstance(expected_shape, (list, tuple)):
+            expected_rank = len(expected_shape)
+        else:
+            expected_rank = 1
+
+        if expected_rank == 1:
+            # model expects 1D audio [T]
+            ort_in = audio_padded
+        elif expected_rank == 2:
+            # model expects batched input [B, T]
+            if audio_padded.ndim == 1:
+                ort_in = audio_padded[np.newaxis, :]
+            else:
+                ort_in = audio_padded
+        else:
+            # fallback: ensure at least batch dimension
+            if audio_padded.ndim == 1:
+                ort_in = audio_padded[np.newaxis, :]
+            else:
+                ort_in = audio_padded
+
+        ort_inputs = {self.input_name: ort_in}
+        try:
+            ort_outputs = self.session.run(None, ort_inputs)
+        except Exception as e:
+            # Retry with alternate rank (swap between [T] and [1, T]) in case export differs
+            try:
+                if ort_in.ndim == 1:
+                    alt_in = ort_in[np.newaxis, :]
+                else:
+                    alt_in = ort_in.squeeze(0)
+                ort_inputs_alt = {self.input_name: alt_in}
+                ort_outputs = self.session.run(None, ort_inputs_alt)
+            except Exception:
+                # re-raise original for visibility
+                raise e
 
         logits = ort_outputs[0]  # [1, time_frames, num_classes]
         if logits.ndim != 3 or logits.shape[0] != 1:

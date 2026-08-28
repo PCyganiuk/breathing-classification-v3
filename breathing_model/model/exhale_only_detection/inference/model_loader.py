@@ -37,7 +37,50 @@ class BreathPhaseClassifier:
         else:
             state_dict = checkpoint
 
-        model.load_state_dict(state_dict, strict=strict)
+        # If state_dict shapes mismatch (e.g., positional encoding length), try to adapt
+        model_state = model.state_dict()
+        adapted = False
+        new_state = {}
+        for k, v in state_dict.items():
+            if k in model_state:
+                if v.shape != model_state[k].shape:
+                    # Handle positional encoding resizing by copying overlapping prefix
+                    if 'pos_encoder.pe' in k:
+                        target = model_state[k]
+                        # create a tensor with target shape and copy min prefix
+                        new_v = target.clone()
+                        min_len = min(v.shape[1], target.shape[1]) if v.ndim >= 3 else min(v.shape[0], target.shape[0])
+                        try:
+                            # assume shape [1, seq_len, d_model]
+                            new_v[:, :min_len, ...] = v[:, :min_len, ...]
+                        except Exception:
+                            # fallback: flatten-copy as much as possible
+                            flat_src = v.flatten()
+                            flat_dst = new_v.flatten()
+                            flat_dst[:min(flat_src.numel(), flat_dst.numel())] = flat_src[:flat_dst.numel()]
+                            new_v = flat_dst.view_as(new_v)
+                        new_state[k] = new_v
+                        adapted = True
+                        continue
+                    else:
+                        # Skip incompatible parameter and warn
+                        print(f"Warning: skipping incompatible parameter '{k}' with shape {v.shape} (expected {model_state[k].shape})")
+                        adapted = True
+                        continue
+                else:
+                    new_state[k] = v
+            else:
+                # param not present in model -> skip
+                adapted = True
+                continue
+
+        if adapted:
+            # Merge new_state into model_state for loading (non-strict)
+            merged = model_state.copy()
+            merged.update(new_state)
+            model.load_state_dict(merged, strict=False)
+        else:
+            model.load_state_dict(state_dict, strict=strict)
         model.eval()
         return model
 

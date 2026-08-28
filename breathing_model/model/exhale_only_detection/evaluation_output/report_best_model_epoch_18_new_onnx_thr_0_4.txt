@@ -1,0 +1,14 @@
+Model: /home/pyza/Projects/breathing-classification-v3/breathing_model/model/exhale_only_detection/best_models/best_model_epoch_18_new.onnx
+Threshold: 0.4
+Num chunks: 11705
+Accuracy: 0.8533
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Exhale     0.8572    0.9140    0.8847      7206
+       Other     0.8458    0.7562    0.7985      4499
+
+    accuracy                         0.8533     11705
+   macro avg     0.8515    0.8351    0.8416     11705
+weighted avg     0.8528    0.8533    0.8516     11705
